@@ -15,52 +15,77 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 @Slf4j
 @Order(1)
 public class RequestResponseLogger implements Filter {
     @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+
+    }
+
+    @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         long start = System.currentTimeMillis();
         CustomHttpRequestWrapper requestWrapper = new CustomHttpRequestWrapper((HttpServletRequest) servletRequest);
+
+        SimpleDateFormat f = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss:SSS");
+        String date = f.format(new Date());
+        UUID uuid = UUID.randomUUID();
+
+        String method = requestWrapper.getMethod();
+        String uri = requestWrapper.getRequestURI();
+        String step = "Default Step";
+
+        switch (method) {
+            case "POST" :
+                switch (uri) {
+                    case "/user" : step = "Adding User";
+                        break;
+                    default: step = "Default";
+                }
+                break;
+            case "GET" : step = "Get User";
+                break;
+            case "DELETE" : step = "Delete User";
+                break;
+            case "PATCH" : step = "Update User";
+                break;
+        }
+
+        String url = String.valueOf(requestWrapper.getRequestURL());
+        String serverName = requestWrapper.getServerName();
+        String reqBody = new String(requestWrapper.getByteArray());
 
         CustomHttpResponseWrapper responseWrapper = new CustomHttpResponseWrapper((HttpServletResponse) servletResponse);
 
         filterChain.doFilter(requestWrapper, responseWrapper);
 
-        SimpleDateFormat f = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss:SSS");
-
-        log.info("INFO {} {}", f.format(new Date()), responseWrapper.getCharacterEncoding() );
-        log.info("ID : {}", getCurrentlyDateTime());
-
-        String method = requestWrapper.getMethod();
-        String uri = requestWrapper.getRequestURI();
-
-        switch (method) {
-            case "POST" :
-                switch (uri) {
-                    case "/user" : log.info("STEP : Adding User");
-                        break;
-                    default: log.info("STEP : Default");
-                }
-                break;
-        }
-
-        log.info("Request URL: {}", requestWrapper.getRequestURL());
-        log.info("Host : {}", requestWrapper.getServerName());
-
 //        Request Inline
 //        log.info("Request Body: {}", new String(requestWrapper.getByteArray()).replaceAll("\n", " "));
 
-//        Request Body Original
-        log.info("Request Body: {}", new String(requestWrapper.getByteArray()));
-
         long end = System.currentTimeMillis() - start;
 
-        log.info("Response Status : {}", responseWrapper.getStatus());
-        log.info("Response Body : {}", new String(responseWrapper.getBaos().toByteArray()));
-        log.info("Response Time : {}", end);
+        int status = responseWrapper.getStatus();
+
+        log.info("INFO {} {} \n" +
+                "ID : {}\n" +
+                "STEP : {}\n" +
+                "Request URL: {}\n" +
+                "Host : {}\n" +
+                "Request Body: {}\n" +
+                "Response Status : {}\n" +
+                "Response Body :  \n" +
+                "Response Time : {}", date, uuid, getCurrentlyDateTime(), step, url, serverName, reqBody, status, end);
+
+//        log.info("Response Body : {}", new String(responseWrapper.getBaos().toByteArray()));
+    }
+
+    @Override
+    public void destroy() {
+
     }
 
     private class CustomHttpRequestWrapper extends HttpServletRequestWrapper {

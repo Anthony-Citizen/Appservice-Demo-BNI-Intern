@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -47,6 +48,27 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User update(Long userId, UserInput userInput) {
+        Optional<User> userUpdated = userRepository.findById(userId);
+
+        if (userUpdated == null){
+            throw new RuntimeException("Not Found");
+        }
+
+        if(userInput.getUsername() != null && userInput.getEmail() != null && userInput.getPhone() != null){
+            userUpdated.get().setUsername(userInput.getUsername());
+            userUpdated.get().setEmail(userInput.getEmail());
+            userUpdated.get().setPhone(userInput.getPhone());
+        }else if(userInput.getUsername() != null && userInput.getEmail() != null) {
+            userUpdated.get().setUsername(userInput.getUsername());
+            userUpdated.get().setEmail(userInput.getEmail());
+        }else{
+            userUpdated.get().setPhone(userInput.getPhone());
+        }
+        return userRepository.save(userUpdated.get());
+    }
+
+    @Override
     public void addOne(UserInput userInput) {
         User user = User.builder()
                 .username(userInput.getUsername())
@@ -58,5 +80,15 @@ public class UserServiceImpl implements UserService {
         }catch (Exception e){
             throw new RuntimeException("Duplicated");
         }
+    }
+
+    @Override
+    public void delete(Long userId) {
+        Optional<User> user = userRepository.findById(userId);
+        if (user == null){
+            throw new RuntimeException("Not Found");
+        }
+
+        userRepository.deleteById(userId);
     }
 }

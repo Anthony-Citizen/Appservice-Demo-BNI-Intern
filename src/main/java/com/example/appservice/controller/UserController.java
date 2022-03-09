@@ -56,4 +56,33 @@ public class UserController {
             return new ResponseEntity(new BaseResponse(Boolean.FALSE, "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PatchMapping("/{userId}")
+    public ResponseEntity update(@PathVariable Long userId, @Valid @RequestBody UserInput userInput) {
+        try{
+            if (userInput.getUsername() == null && userInput.getEmail() == null && userInput.getPhone() == null){
+                return new ResponseEntity(new BaseResponse(Boolean.FALSE, "Bad Request"), HttpStatus.BAD_REQUEST);
+            }
+
+            return ResponseEntity.ok(userService.update(userId, userInput));
+        }catch (Exception e){
+            if(e.getMessage().equalsIgnoreCase("Not Found")){
+                return new ResponseEntity(new BaseResponse(Boolean.FALSE, "Not Found"), HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity(new BaseResponse(Boolean.FALSE, "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity delete(@PathVariable Long userId) {
+        try{
+            userService.delete(userId);
+            return new ResponseEntity(new BaseResponse(Boolean.TRUE, "Deleted Successfully"), HttpStatus.OK);
+        }catch (Exception e){
+            if(e.getMessage().equalsIgnoreCase("Not Found")){
+                return new ResponseEntity(new BaseResponse(Boolean.FALSE, "Not Found"), HttpStatus.BAD_REQUEST);
+            }
+            return new ResponseEntity(new BaseResponse(Boolean.FALSE, "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
