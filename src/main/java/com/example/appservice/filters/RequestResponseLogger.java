@@ -70,15 +70,17 @@ public class RequestResponseLogger implements Filter {
 
         int status = responseWrapper.getStatus();
 
-        log.info("INFO {} {} \n" +
-                "ID : {}\n" +
-                "STEP : {}\n" +
-                "Request URL: {}\n" +
-                "Host : {}\n" +
-                "Request Body: {}\n" +
-                "Response Status : {}\n" +
-                "Response Body :  \n" +
-                "Response Time : {}", date, uuid, getCurrentlyDateTime(), step, url, serverName, reqBody, status, end);
+        if(serverName.equals("localhost")) {
+            log.info("INFO {} {} \n" +
+                    "ID : {}\n" +
+                    "STEP : {}\n" +
+                    "Request URL: {}\n" +
+                    "Host : {}\n" +
+                    "Request Body: {}\n" +
+                    "Response Status : {}\n" +
+                    "Response Body :  \n" +
+                    "Response Time : {}", date, uuid, getCurrentlyDateTime(), step, url, serverName, reqBody, status, end);
+        }
 
 //        log.info("Response Body : {}", new String(responseWrapper.getBaos().toByteArray()));
     }
