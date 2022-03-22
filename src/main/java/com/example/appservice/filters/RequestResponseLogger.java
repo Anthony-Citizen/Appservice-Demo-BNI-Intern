@@ -1,16 +1,25 @@
 package com.example.appservice.filters;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.TeeOutputStream;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+import org.junit.Test;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.support.HttpRequestWrapper;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ResourceUtils;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -36,23 +45,31 @@ public class RequestResponseLogger implements Filter {
         UUID uuid = UUID.randomUUID();
 
         String method = requestWrapper.getMethod();
-        String uri = requestWrapper.getRequestURI();
+        String rawURI = requestWrapper.getRequestURI();
+        String uri = rawURI.substring(0,5);
         String step = "Default Step";
 
-        switch (method) {
-            case "POST" :
-                switch (uri) {
-                    case "/user" : step = "Adding User";
-                        break;
-                    default: step = "Default";
-                }
-                break;
-            case "GET" : step = "Get User";
-                break;
-            case "DELETE" : step = "Delete User";
-                break;
-            case "PATCH" : step = "Update User";
-                break;
+        //JSON parser object to parse read file
+        JSONParser jsonParser = new JSONParser();
+
+        try {
+            Object obj = jsonParser.parse(new FileReader("c:/json/step.json"));
+
+            // A JSON object. Key value pairs are unordered. JSONObject supports java.util.Map interface.
+            JSONObject jsonObject = (JSONObject) obj;
+
+            JSONObject step1 = (JSONObject) jsonObject.get(method);
+
+            step = (String) step1.get(uri);
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        } catch(NullPointerException e) {
+            e.printStackTrace();
         }
 
         String url = String.valueOf(requestWrapper.getRequestURL());
@@ -70,6 +87,8 @@ public class RequestResponseLogger implements Filter {
 
         int status = responseWrapper.getStatus();
 
+        String resBody = new String(responseWrapper.getBaos().toByteArray());
+
         if(serverName.equals("localhost")) {
             log.info("INFO {} {} \n" +
                     "ID : {}\n" +
@@ -78,8 +97,8 @@ public class RequestResponseLogger implements Filter {
                     "Host : {}\n" +
                     "Request Body: {}\n" +
                     "Response Status : {}\n" +
-                    "Response Body :  \n" +
-                    "Response Time : {}", date, uuid, getCurrentlyDateTime(), step, url, serverName, reqBody, status, end);
+                    "Response Body : {}\n" +
+                    "Response Time : {}", date, uuid, getCurrentlyDateTime(), step, url, serverName, reqBody, status, resBody, end);
         }
 
 //        log.info("Response Body : {}", new String(responseWrapper.getBaos().toByteArray()));
