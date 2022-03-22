@@ -1,28 +1,18 @@
 package com.example.appservice.filters;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.TeeOutputStream;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.junit.Test;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpRequest;
-import org.springframework.http.client.support.HttpRequestWrapper;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ResourceUtils;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
-import java.nio.file.Files;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.UUID;
 
